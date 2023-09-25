@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Classification</title>
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .result-box {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Audio Classification</h1>
+        
+        <!-- Ensure that the form has enctype="multipart/form-data" -->
+        <form id="upload-form" enctype="multipart/form-data" class="text-center">
+            <div class="form-group">
+                <label for="audioFile">Select an audio file (.wav)</label>
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="audioFile" name="file" accept=".wav" required>
+                    <label class="custom-file-label" for="audioFile">Choose file</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Classify</button>
+        </form>
+        
+        <div id="result" style="display: none;">
+            <h2 class="mt-4">Classification Result:</h2>
+            <div id="result-container"></div>
+        </div>
+    </div>
+
+    <!-- Add Bootstrap JS and Popper.js (required for Bootstrap) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // JavaScript for handling file upload and classification
+        const form = document.getElementById('upload-form');
+        const resultDiv = document.getElementById('result');
+        const resultContainer = document.getElementById('result-container');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+
+            try {
+                // Send the audio file to the backend for classification
+                const response = await fetch('/', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Display the classification result
+                    displayClassificationResult(data);
+                    resultDiv.style.display = 'block';
+                } else {
+                    resultContainer.textContent = 'Classification failed.';
+                    resultDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error(error);
+                resultContainer.textContent = 'An error occurred.';
+                resultDiv.style.display = 'block';
+            }
+        });
+
+        function displayClassificationResult(data) {
+            // Sort the keys by their values in descending order
+            const sortedKeys = Object.keys(data).sort((a, b) => data[b] - data[a]);
+
+            // Create a result box for each key-value pair
+            sortedKeys.forEach((key) => {
+                const value = data[key];
+                const percentValue = (value * 100).toFixed(2); // Convert value to percentage
+
+                const resultBox = document.createElement('div');
+                resultBox.classList.add('result-box');
+
+                // Display the key and percentage value
+                resultBox.textContent = `${key}: ${percentValue}%`;
+
+                resultContainer.appendChild(resultBox);
+            });
+        }
+    </script>
+</body>
+</html>
